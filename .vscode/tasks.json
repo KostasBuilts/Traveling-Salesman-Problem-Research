@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build_only",
+            "type": "shell",
+            "command": "gcc",
+            "args": [
+                "${file}",
+                "-o",
+                "${workspaceFolder}/run.out",
+                "-lm"
+            ],
+            "group": "build",
+            "problemMatcher": "$gcc"
+        }
+    ]
+}
