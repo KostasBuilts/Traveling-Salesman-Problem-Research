@@ -3,6 +3,11 @@ COMMENT : Found by Enhanced Quantum Annealing
 TYPE : TOUR
 DIMENSION : 20
 TOUR_SECTION
+3
+20
+18
+16
+19
 17
 7
 8
@@ -18,10 +23,5 @@ TOUR_SECTION
 2
 1
 5
-3
-20
-18
-16
-19
 -1
 EOF
