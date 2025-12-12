@@ -5,7 +5,6 @@
 [![C Language](https://img.shields.io/badge/Language-C-blue)](https://en.wikipedia.org/wiki/C_(programming_language))
 [![OpenMP](https://img.shields.io/badge/Parallel-OpenMP-green)](https://www.openmp.org/)
 [![TSP](https://img.shields.io/badge/Problem-TSP-orange)](https://en.wikipedia.org/wiki/Travelling_salesman_problem)
-[![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
 
 ## What It Does
 
