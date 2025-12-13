@@ -1,2 +1,4 @@
 *.o
-*.tour
+*.tsp.tour
+*.elf
+*.tsp

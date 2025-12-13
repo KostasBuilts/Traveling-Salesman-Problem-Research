@@ -5,8 +5,8 @@
 #include <time.h>
 
 #define MAX_CITIES 100
-#define POPULATION_SIZE 50000
-#define GENERATIONS 30
+#define POPULATION_SIZE 10000
+#define GENERATIONS 40
 #define MUTATION_RATE 0.01
 
 
@@ -19,20 +19,29 @@ typedef struct
     double y[MAX_CITIES+1];
 } TSPdata;
 
-TSPdata tData;
-int num_cities=0;
 
 //dilono tis global metavlites
+TSPdata tData={ 
+                "Kiriazis Konstantinos",
+                "Internal dataset with 20 cities",
+                20,
+                {0,10,12,11,13,9,40,41,39,42,38,70,73,75,72,71,20,22,18,21,19},
+                {0,10,11,14,9,12,40,43,42,39,41,10,11,9,13,8,70,73,69,72,68}
+            };
+int num_cities=0;
 double cities_distance[MAX_CITIES][MAX_CITIES+1];
 int cur_population[POPULATION_SIZE][MAX_CITIES+1];
 int new_population[POPULATION_SIZE][MAX_CITIES+1];
 int best_route_alltimes[MAX_CITIES+1];
 int best_route_population[MAX_CITIES+1];
+int new_best_found=1;
 double fitness[POPULATION_SIZE];
 double mean_fitness;
-int best_route[21]={0,8,10,6,9,14,12,13,15,11,4,2,1,5,3,20,18,16,19,17,7};
 
 
+// ------------------------------------ best results found so far ------------------------------------------------
+//3 1 2 4 20 18 16 19 17 9 10 7 8 6 14 12 15 13 11 5 Total distance: 247.990   BEST with this algorithm
+//8 10 6 9 14 12 13 15 11 4 2 1 5 3 20 18 16 19 17 7 Total distance: 223.191   Absolute BEST with Annealing Simulation Arlgoritm !!!!!!!!!!!!
 
 
 
@@ -61,8 +70,6 @@ void print_city_data()
         printf("%6d    %7.2f    %7.2f\n", i, tData.x[i], tData.y[i]);
     }
 }
-
-
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -156,6 +163,7 @@ void find_best_fit(int best_route_alltimes[], double *best_fit_alltimes, double 
         if (fitness[i] > *best_fit_alltimes) {
             *best_fit_alltimes = fitness[i];
             for(ii=1; ii<=num_cities; ii++) best_route_alltimes[ii]=cur_population[i][ii];
+            new_best_found=1;
         } 
     }
 }
@@ -214,6 +222,8 @@ int select_parent_elitist() {
 
     return POPULATION_SIZE - 1;
 }
+
+
 ////////////////////////////////////////////////////////////////////////////////
 void crossover(int *p1, int *p2, int *child) {
     int start, end, i, j, k;
@@ -252,8 +262,7 @@ void crossover(int *p1, int *p2, int *child) {
 
 /////////////////////////////////////////////////////////////////////////
 void mutate(int *travel_route) {
-    double r;
-    
+    double r;    
     r = (double) rand() / RAND_MAX;
     if (r < MUTATION_RATE) {
         int a = rand() % num_cities +1;
@@ -268,7 +277,6 @@ void mutate(int *travel_route) {
 /////////////////////////////////////////////////////////////////////////////
 void init_population() {
     int i, j;
-
     for (i=0; i<POPULATION_SIZE; i++) {
         for (j=1; j<=num_cities; j++) {
             cur_population[i][j] = j;
@@ -284,12 +292,10 @@ void init_population() {
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 void print_distance_matrix(int start, int end)
 {
     int i, ii;
-
     printf("\n---------\n");
     for (i=start; i<=end; i++) {
         for (ii=start; ii<=end; ii++) {
@@ -301,12 +307,10 @@ void print_distance_matrix(int start, int end)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 void print_current_population()
 {
     int i, ii;
-
     printf("\n---------\n");
     for (i=0; i<POPULATION_SIZE; i++) {
         for (ii=1; ii<=num_cities; ii++){
@@ -322,12 +326,10 @@ void print_current_population()
 void print_route(int route[])
 {
 	int i;
-
     for (i=1; i<=num_cities; i++) {
         printf("%d ", route[i]);
     }
-
-    printf("\nTotal distance: %.3f\n", travel_route_length(route));
+    printf("\nTotal distance: %.3f", travel_route_length(route));
 }
 
 
@@ -352,18 +354,22 @@ int main(int argc, char **argv)
 	//--------------------------------------------------------------------------------------- 
     srand(time(NULL));
     // Open a file in read mode
+    
+    printf("\n\n\nOpening file.....");
     fptr = fopen(argv[1], "r");
     if (fptr == NULL) {
-            printf ("\n Error: file %s not found\n", argv[1]);
-            return(0);
+            printf ("\nERROR: file %s not found. Please use a valid file with tsp format.\nSwitching to Internal dataset.\n", argv[1]);
+            //return(0);
     }
-    // read file content and populate tData structure
-    if(read_filedata(fptr)==1) printf("\nFile readed succefully\n");
-    else printf("\n error during file reading\n");
-    fclose(fptr); 
+    else {
+        // read file content and populate tData structure
+        if(read_filedata(fptr)==1) printf("\nFile (%s) readed succefully", argv[1]);
+        else printf("\n ERROR: during file reading.\n");
+        fclose(fptr); 
+    }
  	//print tData contents
     num_cities=tData.dimension;
-    printf("\nNumber of cites = %d\n",num_cities); print_city_data(); 
+    print_city_data(); 
 
 
     //---------------------------------------------------------------------------------------  
@@ -375,17 +381,21 @@ int main(int argc, char **argv)
 
 
     //----------------------------------------------------------------------------------------
-    printf("\nstarting genetic algorithm...\n");
-    printf("-------------------------------------------------------------------------\n");
-    printf("  genation    meanfitness   bestfitness-generation   bestfitness-alltimes\n");
-    printf("-----------+--------------+------------------------+---------------------\n");
-    int gen, pi, idx, k;
-    for (gen = 0; gen < GENERATIONS; gen++) {
-        for (pi = 0; pi < POPULATION_SIZE; pi++) {
+    printf("\n\nstarting genetic algorithm...\n");
+    printf("\n---------------------------------------------");
+    printf("\n Population    : %d", POPULATION_SIZE);
+    printf("\n Generations   : %d", GENERATIONS);
+    printf("\n Mutation Rate : %5.3f", MUTATION_RATE);
+    printf("\n---------------------------------------------");
+    printf("\n  genation    meanfitness        bestfitness ");
+    printf("\n-----------+--------------+-----------------+\n");
+    int gen, pii, idx, k;
+    for (gen=0; gen < GENERATIONS; gen++) {
+        for (pii = 0; pii < POPULATION_SIZE; pii++) {
             int p1 = select_parent_elitist();
             int p2 = select_parent_elitist();
-            crossover(cur_population[p1], cur_population[p2], new_population[pi]);
-            mutate(new_population[pi]);
+            crossover(cur_population[p1], cur_population[p2], new_population[pii]);
+            mutate(new_population[pii]);
         }
 
         for (idx = 0; idx < POPULATION_SIZE; idx++) {
@@ -396,36 +406,24 @@ int main(int argc, char **argv)
 
         compute_fitness();
         find_best_fit(best_route_alltimes, &best_fit_alltimes, &best_fit, &best_index);
-        printf(" %5d        %9lf            %9lf              %9lf\n", gen, mean_fitness, best_fit, best_fit_alltimes);     // disply the mean fitness and best fitness
+        if (new_best_found==1) {
+            printf(" %5d         %9lf          %9lf \n", gen, mean_fitness, best_fit_alltimes); // disply the mean fitness and best fitness
+            new_best_found=0;
+        }
     }
 
     
     //----------------------------------------------------------------------------------------
     //print_current_population();
-    printf("\n-------------------------------------------------");
-    printf("\nBest route of last population:\n");
-    print_route(cur_population[best_index]);
+    //printf("\n-------------------------------------------------");
+    //printf("\nBest route of last population:\n");
+    //print_route(cur_population[best_index]);
     printf("\n-------------------------------------------------");
     printf("\nBest route of best generation:\n");
     print_route(best_route_alltimes);  
     printf("\n-------------------------------------------------");
-    printf("\nAbsolute Best route:\n");
-    print_route(best_route);      
+    printf("\n\n");
 
-    
-    printf("\n\n\n\nobsolute (old stuff)\nBest route found:\n");
-    for (i = 0; i < num_cities; i++) {
-        printf("%d ", cur_population[best_index][i]);
-    }
-    printf("\nTotal distance: %.3f\n", travel_route_length(cur_population[best_index]));
-
-
-
-    return 0;    
-
-    //1 11 13 14 12 15 9 7 17 19 16 18 10 6 8 5 3 4 2 0  Total distance: 271.947 	
-    
-    //8 1 5 0 4 2 3 9 7 6 10 18 16 17 19 13 15 12 14 11  Total distance: 269.189   BEST so far !!!!!!!!!!!!!!!!!
-    
+    return 0;      
     
 }
