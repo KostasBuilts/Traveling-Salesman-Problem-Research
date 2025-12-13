@@ -47,7 +47,7 @@ make
 ```
 - **High-performance mode**
 ```bash
-./quantum_tsp -f att48.tsp -threads 8 -restarts 10 -gamma 10.0
+./quantum_tsp -f att48.tsp -threads $(nproc) -restarts 10 -gamma 10.0
 ```
 - **Quiet mode for scripts**
 ```bash
