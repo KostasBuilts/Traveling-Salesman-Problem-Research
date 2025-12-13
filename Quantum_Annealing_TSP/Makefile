@@ -1,4 +1,8 @@
-CC = gcc
+ifeq ($(OS),Windows_NT)
+	CC = x86_64-w64-mingw32-g++
+else
+	CC = gcc
+endif
 CFLAGS = -O3 -fopenmp -Wall -Wextra
 LDFLAGS = -fopenmp -lm
 TARGET = quantum_tsp.elf
