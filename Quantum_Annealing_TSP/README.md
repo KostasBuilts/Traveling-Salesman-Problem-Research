@@ -37,16 +37,20 @@ make
 
 ### Basic Usage
 
-# Auto-tune for any TSP file
+- **Auto-tune for any TSP file**
+```bash
 ./quantum_tsp -f your_problem.tsp
-
-# Use all CPU cores
+```
+- **Use all CPU cores**
+```bash
 ./quantum_tsp -f berlin52.tsp -threads $(nproc)
-
-# High-performance mode
+```
+- **High-performance mode**
+```bash
 ./quantum_tsp -f att48.tsp -threads 8 -restarts 10 -gamma 10.0
-
-# Quiet mode for scripts
+```
+- **Quiet mode for scripts**
+```bash
 ./quantum_tsp -f eil51.tsp -quiet -no-save
 ```
 
