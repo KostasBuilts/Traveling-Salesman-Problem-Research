@@ -33,14 +33,10 @@ make
 ./quantum_tsp -f att48.tsp -threads 8
 ```
 
-# Run on included test
-./quantum_tsp -f test5.tsp
-```
-
 ## Usage Examples
 
 ### Basic Usage
-```bash
+
 # Auto-tune for any TSP file
 ./quantum_tsp -f your_problem.tsp
 
