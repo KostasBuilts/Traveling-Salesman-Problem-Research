@@ -4,13 +4,15 @@
 #include "common.h"
 #include "tspinstance.h"
 
-typedef struct {
+typedef struct 
+{
     int *tour;
     double energy;
     double *field;
 } Replica;
 
-typedef struct {
+typedef struct 
+{
     double classical_temp;
     double quantum_temp;
     double transverse_field;

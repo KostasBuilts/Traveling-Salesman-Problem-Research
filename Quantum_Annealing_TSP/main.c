@@ -10,7 +10,8 @@
 #include <time.h>
 #include <omp.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv) 
+{
     // Initialize random seed
     unsigned int seed = time(NULL);
     srand(seed);

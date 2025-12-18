@@ -4,7 +4,8 @@
 #include "common.h"
 
 // Complete TSPInstance structure
-struct TSPInstance {
+struct TSPInstance 
+{
     City *cities;
     int n;
     double **dist_matrix;
