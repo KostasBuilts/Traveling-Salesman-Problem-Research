@@ -25,16 +25,7 @@ typedef struct
 } QMCParams;
 
 // Quantum annealing with multiple restarts
-void quantum_annealing_optimized(TSPInstance *instance, int *best_tour, 
-                                double *best_energy, QMCParams *params);
-
-// Wrapper function for backward compatibility
-void quantum_annealing(TSPInstance *instance, int *best_tour, double *best_energy,
-                      QMCParams *params);
-
-// Adaptive quantum annealing
-void adaptive_quantum_annealing(TSPInstance *instance, int *best_tour,
-                               double *best_energy, QMCParams *params);
+void quantum_annealing_optimized(TSPInstance *instance, int *best_tour, double *best_energy, QMCParams *params);
 
 // Replica operations
 Replica *create_replica(int n);

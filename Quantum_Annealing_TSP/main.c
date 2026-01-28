@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     unsigned int seed = time(NULL);
     srand(seed);
     printf("Random seed: %u\n", seed);
-    
+
     // Default OPTIMIZED parameters for quantum annealing
     char *filename = NULL;
     QMCParams params = {
@@ -30,16 +30,17 @@ int main(int argc, char **argv)
         .num_restarts = 5,            // Multiple restarts for thorough exploration
         .acceptance_target = 0.25     // Target 25% acceptance rate
     };
-    
+
     int use_post_optimization = 1;    // Apply 2-opt after quantum annealing
     int num_threads = omp_get_max_threads();
     int verbose = 1;                  // Print progress information
     double time_limit = 0.0;          // No time limit by default
     int save_tour = 1;                // Save tour to file
     double opt_time = 0.0;            // Initialize opt_time variable
-    
+
     // Parse command line arguments
-    for (int i = 1; i < argc; i++) {
+    for (int i = 1; i < argc; i++) 
+    {
         if (strcmp(argv[i], "-f") == 0 && i+1 < argc) {
             filename = argv[++i];
         }
@@ -83,12 +84,14 @@ int main(int argc, char **argv)
         else if (strcmp(argv[i], "-quiet") == 0) {
             verbose = 0;
         }
-        else if (strcmp(argv[i], "-seed") == 0 && i+1 < argc) {
+        else if (strcmp(argv[i], "-seed") == 0 && i+1 < argc) 
+        {
             seed = atoi(argv[++i]);
             srand(seed);
             printf("Using specified seed: %u\n", seed);
         }
-        else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+        else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) 
+        {
             printf("Quantum TSP Solver - Enhanced Quantum Annealing\n");
             printf("=================================================\n");
             printf("Usage: %s -f file.tsp [options]\n\n", argv[0]);
@@ -125,44 +128,50 @@ int main(int argc, char **argv)
             return 1;
         }
     }
-    
-    if (filename == NULL) {
+
+    if (filename == NULL) 
+    {
         fprintf(stderr, "Error: Please specify a TSP file with -f\n");
         fprintf(stderr, "Use -h for help\n");
         return 1;
     }
-    
+
     // Load TSP instance
     TSPInstance instance;
     init_tsp_instance(&instance);
-    
-    if (verbose) {
+
+    if (verbose) 
+    {
         printf("\n=================================================\n");
         printf("Quantum TSP Solver - Enhanced Quantum Annealing\n");
         printf("=================================================\n");
         printf("Loading TSP instance: %s\n", filename);
     }
-    
+
     int success = parse_tsplib(filename, &instance);
-    if (!success) {
+    if (!success) 
+    {
         if (verbose) printf("Trying simple parser...\n");
         success = parse_simple_tsp(filename, &instance);
     }
-    
-    if (!success) {
+
+    if (!success) 
+    {
         fprintf(stderr, "Failed to parse TSP file: %s\n", filename);
         fprintf(stderr, "Make sure it's a valid TSPLIB file or a simple coordinate file\n");
         free_tsp_instance(&instance);
         return 1;
     }
-    
-    if (instance.n <= 1) {
+
+    if (instance.n <= 1) 
+    {
         fprintf(stderr, "Error: Instance must have at least 2 cities\n");
         free_tsp_instance(&instance);
         return 1;
     }
-    
-    if (verbose) {
+
+    if (verbose) 
+    {
         printf("Successfully loaded %d cities\n", instance.n);
         printf("Distance type: ");
         if (instance.is_att) printf("ATT (pseudo-Euclidean)\n");
@@ -171,19 +180,21 @@ int main(int argc, char **argv)
         else if (instance.is_explicit) printf("EXPLICIT\n");
         else printf("EUC_2D (standard Euclidean)\n");
     }
-    
+
     // Build distance matrix
     if (verbose) printf("Building distance matrix...\n");
     clock_t build_start = clock();
     build_distance_matrix(&instance);
     clock_t build_end = clock();
     double build_time = (double)(build_end - build_start) / CLOCKS_PER_SEC;
-    
-    if (verbose) {
+
+    if (verbose) 
+    {
         printf("Distance matrix built in %.3f seconds\n", build_time);
         
         // Show some distance samples
-        if (instance.n >= 3) {
+        if (instance.n >= 3) 
+        {
             printf("Sample distances: ");
             printf("%.2f (0->1), ", instance.dist_matrix[0][1]);
             printf("%.2f (1->2), ", instance.dist_matrix[1][2]);
@@ -191,60 +202,58 @@ int main(int argc, char **argv)
             printf("\n");
         }
     }
-    
+
     // Allocate memory for best tour
     int *best_tour = malloc(instance.n * sizeof(int));
-    if (!best_tour) {
+    if (!best_tour) 
+    {
         fprintf(stderr, "Memory allocation failed for tour\n");
         free_tsp_instance(&instance);
         return 1;
     }
-    
+
     double best_energy;
-    
+
     // Auto-adjust parameters based on problem size if not specified
-    if (argc <= 2) { // Only -f was specified, use auto-tuning
+    if (argc <= 2) // Only -f was specified, use auto-tuning
+    { 
         if (verbose) printf("\nAuto-tuning parameters for %d cities...\n", instance.n);
         
-        if (instance.n < 10) {
+        if (instance.n < 10) 
+        {
             params.num_replicas = 8;
             params.num_walkers = 2;
             params.num_restarts = 3;
             params.transverse_field = 2.0;
-            if (verbose) printf("  Small instance: replicas=%d, walkers=%d, restarts=%d, gamma=%.1f\n",
-                              params.num_replicas, params.num_walkers, 
-                              params.num_restarts, params.transverse_field);
+            if (verbose) printf("  Small instance: replicas=%d, walkers=%d, restarts=%d, gamma=%.1f\n", params.num_replicas, params.num_walkers, params.num_restarts, params.transverse_field);
         }
-        else if (instance.n < 30) {
+        else if (instance.n < 30) 
+        {
             params.num_replicas = 12;
             params.num_walkers = 4;
             params.num_restarts = 5;
             params.transverse_field = 3.0;
-            if (verbose) printf("  Medium instance: replicas=%d, walkers=%d, restarts=%d, gamma=%.1f\n",
-                              params.num_replicas, params.num_walkers,
-                              params.num_restarts, params.transverse_field);
+            if (verbose) printf("  Medium instance: replicas=%d, walkers=%d, restarts=%d, gamma=%.1f\n", params.num_replicas, params.num_walkers, params.num_restarts, params.transverse_field);
         }
-        else if (instance.n < 100) {
+        else if (instance.n < 100) 
+        {
             params.num_replicas = 16;
             params.num_walkers = 6;
             params.num_restarts = 7;
             params.transverse_field = 5.0;
-            if (verbose) printf("  Large instance: replicas=%d, walkers=%d, restarts=%d, gamma=%.1f\n",
-                              params.num_replicas, params.num_walkers,
-                              params.num_restarts, params.transverse_field);
+            if (verbose) printf("  Large instance: replicas=%d, walkers=%d, restarts=%d, gamma=%.1f\n", params.num_replicas, params.num_walkers, params.num_restarts, params.transverse_field);
         }
         else {
             params.num_replicas = 20;
             params.num_walkers = 8;
             params.num_restarts = 10;
             params.transverse_field = 8.0;
-            if (verbose) printf("  Very large instance: replicas=%d, walkers=%d, restarts=%d, gamma=%.1f\n",
-                              params.num_replicas, params.num_walkers,
-                              params.num_restarts, params.transverse_field);
+            if (verbose) printf("  Very large instance: replicas=%d, walkers=%d, restarts=%d, gamma=%.1f\n", params.num_replicas, params.num_walkers, params.num_restarts, params.transverse_field);
         }
     }
-    
-    if (verbose) {
+
+    if (verbose) 
+    {
         printf("\nQuantum Annealing Parameters:\n");
         printf("  Classical temperature: %.3f\n", params.classical_temp);
         printf("  Quantum temperature: %.3f\n", params.quantum_temp);
@@ -258,67 +267,70 @@ int main(int argc, char **argv)
         if (time_limit > 0) printf("  Time limit: %.1f seconds\n", time_limit);
         printf("\nStarting Quantum Annealing...\n");
     }
-    
+
     // Run quantum annealing
     clock_t anneal_start = clock();
     quantum_annealing_optimized(&instance, best_tour, &best_energy, &params);
     clock_t anneal_end = clock();
-    
+
     double anneal_time = (double)(anneal_end - anneal_start) / CLOCKS_PER_SEC;
-    
-    if (verbose) {
+
+    if (verbose) 
+    {
         printf("\nQuantum Annealing completed in %.2f seconds\n", anneal_time);
         printf("Best tour found: %.6f\n", best_energy);
     } else {
         printf("Quantum Annealing: %.2f seconds, length: %.6f\n", anneal_time, best_energy);
     }
-    
+
     // Apply 2-opt local optimization if requested
-    if (use_post_optimization) {
+    if (use_post_optimization) 
+    {
         if (verbose) printf("\nApplying 2-opt local optimization...\n");
-        
+
         clock_t opt_start = clock();
         double before_opt = best_energy;
         two_opt_optimize(&instance, best_tour, &best_energy);
         clock_t opt_end = clock();
-        
+
         opt_time = (double)(opt_end - opt_start) / CLOCKS_PER_SEC;
         double improvement = before_opt - best_energy;
-        
-        if (verbose) {
+
+        if (verbose) 
+        {
             printf("2-opt completed in %.3f seconds\n", opt_time);
             printf("Optimized tour length: %.6f\n", best_energy);
-            if (improvement > 1e-9) {
-                printf("Improvement: %.6f (%.2f%%)\n", improvement, 
-                       (improvement / before_opt) * 100.0);
+            if (improvement > 1e-9) 
+            {
+                printf("Improvement: %.6f (%.2f%%)\n", improvement, (improvement / before_opt) * 100.0);
             } else {
                 printf("No improvement found (already optimal at this scale)\n");
             }
         }
     }
-    
+
     // Validate the tour
     if (verbose) printf("\nValidating tour...\n");
-    
+
     int valid = validate_tour(best_tour, instance.n);
-    
+
     if (valid) {
         if (verbose) {
             printf("✓ Valid tour found!\n");
             print_tour(&instance, best_tour);
-            
+
             // Calculate exact length to verify
             double exact_length = tour_length(&instance, best_tour);
             printf("Exact tour length: %.6f\n", exact_length);
-            
-            if (fabs(exact_length - best_energy) > 1e-6) {
-                printf("Note: Small rounding difference: %.6f vs %.6f\n", 
-                       best_energy, exact_length);
+
+            if (fabs(exact_length - best_energy) > 1e-6) 
+            {
+                printf("Note: Small rounding difference: %.6f vs %.6f\n", best_energy, exact_length);
             }
         } else {
             printf("Valid tour: %.6f\n", best_energy);
         }
-        
+
         // Save tour to file if requested
         if (save_tour) {
             char outfile[512];
@@ -335,13 +347,13 @@ int main(int argc, char **argv)
                 }
                 fprintf(f, "-1\nEOF\n");
                 fclose(f);
-                
+
                 if (verbose) printf("Tour saved to: %s\n", outfile);
             } else {
                 fprintf(stderr, "Warning: Could not save tour to file\n");
             }
         }
-        
+
         // Print summary
         if (verbose) {
             printf("\n=================================================\n");
@@ -353,29 +365,26 @@ int main(int argc, char **argv)
                    (use_post_optimization ? opt_time : 0.0));
             printf("Best tour length: %.6f\n", best_energy);
             printf("Random seed: %u\n", seed);
-            
+
             // For known TSPLIB instances, show comparison to known optimal
             if (strstr(filename, "att48") || strstr(filename, "ATT48")) {
-                printf("Known optimal for att48: 10628 (difference: %.1f)\n", 
-                       best_energy - 10628.0);
+                printf("Known optimal for att48: 10628 (difference: %.1f)\n", best_energy - 10628.0);
             }
             else if (strstr(filename, "berlin52") || strstr(filename, "BERLIN52")) {
-                printf("Known optimal for berlin52: 7542 (difference: %.1f)\n", 
-                       best_energy - 7542.0);
+                printf("Known optimal for berlin52: 7542 (difference: %.1f)\n", best_energy - 7542.0);
             }
             else if (strstr(filename, "eil51") || strstr(filename, "EIL51")) {
-                printf("Known optimal for eil51: 426 (difference: %.1f)\n", 
-                       best_energy - 426.0);
+                printf("Known optimal for eil51: 426 (difference: %.1f)\n", best_energy - 426.0);
             }
-            
+
             printf("\nTo run again with same random seed:\n");
             printf("  ./quantum_tsp -f %s -seed %u\n", filename, seed);
             printf("=================================================\n");
         }
-    } else {
+    } else{
         printf("\n✗ ERROR: Invalid tour generated!\n");
         printf("Tour may have duplicate or out-of-range cities.\n");
-        
+
         // Try to diagnose the problem
         int *visited = calloc(instance.n, sizeof(int));
         if (visited) {
@@ -388,20 +397,20 @@ int main(int argc, char **argv)
             }
             if (instance.n > 10) printf("...");
             printf("\n");
-            
+
             printf("Visit counts (first 10): ");
             for (int i = 0; i < instance.n && i < 10; i++) {
                 printf("%d:%d ", i+1, visited[i]);
             }
             printf("\n");
-            
+
             free(visited);
         }
     }
-    
+
     // Cleanup
     free(best_tour);
     free_tsp_instance(&instance);
-    
+
     return valid ? 0 : 1;
 }

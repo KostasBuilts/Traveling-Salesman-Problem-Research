@@ -47,7 +47,7 @@ typedef enum {
     MOVE_QUANTUM_TUNNEL
 } MoveType;
 
-// Try a 3-opt move (more powerful than 2-opt)
+// Try a 3-opt move
 int try_3opt_move(TSPInstance *instance, int *tour, int i, int j, int k) 
 {
     int n = instance->n;
@@ -165,15 +165,15 @@ double enhanced_qmc_step(TSPInstance *instance, Replica *rep, double beta, doubl
     double acceptance_rate = 0.0;
     int accepted_moves = 0;
     int attempted_moves = 0;
-    
+
     // Adaptive move probabilities based on annealing progress
     double progress = (double)step / total_steps;
-    
+
     for (int sweep = 0; sweep < 20; sweep++) 
     {
         MoveType move_type;
         double r = (double)rand() / RAND_MAX;
-        
+
         // Adjust move probabilities as annealing progresses
         if (progress < 0.3) {
             // Early: more quantum and large moves
@@ -195,7 +195,7 @@ double enhanced_qmc_step(TSPInstance *instance, Replica *rep, double beta, doubl
             else if (r < 0.9) move_type = MOVE_2OPT;
             else move_type = MOVE_INSERT;
         }
-        
+
         attempted_moves++;
         
         // Save current state
@@ -460,8 +460,7 @@ void quantum_annealing_optimized(TSPInstance *instance, int *best_tour, double *
     int num_restarts = params->num_restarts;
     
     printf("Optimized Quantum Annealing\n");
-    printf("Cities: %d, Replicas: %d, Walkers: %d, Restarts: %d\n", 
-           n, P, num_walkers, num_restarts);
+    printf("Cities: %d, Replicas: %d, Walkers: %d, Restarts: %d\n", n, P, num_walkers, num_restarts);
     printf("Threads: %d\n", omp_get_max_threads());
     
     // Track global best across all restarts
@@ -620,51 +619,4 @@ void quantum_annealing_optimized(TSPInstance *instance, int *best_tour, double *
     memcpy(best_tour, global_best_tour, n * sizeof(int));
     
     free(global_best_tour);
-}
-
-// Wrapper function with default optimal parameters
-void quantum_annealing(TSPInstance *instance, int *best_tour, double *best_energy, QMCParams *params) 
-{
-    // Use optimized version with good defaults
-    QMCParams optimized_params = *params;
-    
-    // Auto-adjust parameters based on problem size
-    int n = instance->n;
-    
-    if (n < 20) {
-        optimized_params.num_replicas = 8;
-        optimized_params.num_walkers = 4;
-        optimized_params.num_restarts = 3;
-        optimized_params.transverse_field = 3.0;
-    } 
-    else if (n < 50){
-        optimized_params.num_replicas = 12;
-        optimized_params.num_walkers = 6;
-        optimized_params.num_restarts = 5;
-        optimized_params.transverse_field = 5.0;
-    } 
-    else if (n < 100){
-        optimized_params.num_replicas = 16;
-        optimized_params.num_walkers = 8;
-        optimized_params.num_restarts = 7;
-        optimized_params.transverse_field = 8.0;
-    }
-    else{
-        optimized_params.num_replicas = 20;
-        optimized_params.num_walkers = 10;
-        optimized_params.num_restarts = 10;
-        optimized_params.transverse_field = 10.0;
-    }
-    
-    optimized_params.num_sweeps = 20;
-    optimized_params.acceptance_target = 0.25;
-    
-    quantum_annealing_optimized(instance, best_tour, best_energy, &optimized_params);
-}
-
-// Adaptive quantum annealing function
-void adaptive_quantum_annealing(TSPInstance *instance, int *best_tour, double *best_energy, QMCParams *params) 
-{
-    // For now, just call the optimized version
-    quantum_annealing_optimized(instance, best_tour, best_energy, params);
 }
